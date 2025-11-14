@@ -178,11 +178,10 @@ export function PlantingDrawer({
           <div>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full text-green-900 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || !title.trim() || !message.trim()}
+              className="w-full text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               style={{
-                backgroundColor: isLoading ? '#A8E6A3' : '#D7F5D3',
-                transition: 'background-color 0.2s'
+                backgroundColor: (isLoading || !title.trim() || !message.trim()) ? '#D7F5D3' : '#4CAF50',
               }}
             >
               {isLoading ? 'Planting...' : 'Plant Flower'}
