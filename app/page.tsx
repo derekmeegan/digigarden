@@ -373,7 +373,7 @@ export default function GardenPage() {
             {/* Dirt Plot Preview */}
             {plantingPosition && userState === 'planting' && (
               <DirtPlot
-                x={plantingPosition.x}
+                x={plantingPosition.x + preZoomOffset}
                 y={plantingPosition.y}
                 visible={true}
               />
@@ -412,6 +412,7 @@ export default function GardenPage() {
                 return {
                   left: `${flower.x + offset}px`,
                   top: `${flower.y}px`,
+                  transform: 'translate(-50%, -50%)',
                   zIndex: 10,
                 };
               };
