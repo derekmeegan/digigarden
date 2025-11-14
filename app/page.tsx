@@ -436,8 +436,8 @@ export default function GardenPage() {
                   <Image
                     src={FLOWER_METADATA[flower.flower].image}
                     alt={flower.title}
-                    width={100}
-                    height={100}
+                    width={flower.flower === 'blue-forget-me-not' || flower.flower === 'white-rose' ? 115 : 100}
+                    height={flower.flower === 'blue-forget-me-not' || flower.flower === 'white-rose' ? 115 : 100}
                     className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway flower-hover-glow' : ''} ${
                       newlyPlantedFlowerId === flower.id
                         ? 'animate-new-flower'
@@ -471,11 +471,15 @@ export default function GardenPage() {
                     };
 
                     const colors = getTooltipColors();
+                    // Truncate title if longer than 40 characters
+                    const displayTitle = flower.title.length > 40
+                      ? flower.title.slice(0, 40) + '...'
+                      : flower.title;
 
                     return (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
                         <div className={`${colors.bg} ${colors.text} text-sm px-5 py-3 rounded-lg min-w-[150px] max-w-[350px] text-center shadow-lg border-2 ${colors.border}`}>
-                          <p className="font-semibold text-base">{flower.title}</p>
+                          <p className="font-semibold text-base">{displayTitle}</p>
                           {flower.author && (
                             <p className="text-xs mt-1 opacity-75">by {flower.author}</p>
                           )}

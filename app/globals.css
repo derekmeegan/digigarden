@@ -207,3 +207,8 @@
     drop-shadow(0 0 35px rgba(255, 100, 0, 0.7));
   transition: filter 0.3s ease-in-out;
 }
+
+/* Toast description darker grey */
+[data-sonner-toast] [data-description] {
+  color: rgb(75, 85, 99) !important; /* gray-600 */
+}

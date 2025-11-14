@@ -30,19 +30,17 @@ export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelecto
   };
 
   const entries = Object.entries(FLOWER_METADATA);
-  const hasOddNumber = entries.length % 2 !== 0;
 
   return (
     <div className="grid grid-cols-2 gap-4 my-4">
-      {entries.map(([key, meta], index) => {
+      {entries.map(([key, meta]) => {
         const isSelected = selectedFlower === key;
-        const isLastAndOdd = hasOddNumber && index === entries.length - 1;
 
         return (
           <button
             key={key}
             onClick={() => onFlowerChange(key as FlowerType)}
-            className={'flex flex-col items-center p-4 rounded-lg border-2 transition ' + getFlowerColors(key, isSelected) + (isLastAndOdd ? ' col-span-2 max-w-[50%] mx-auto' : '')}
+            className={'flex flex-col items-center p-4 rounded-lg border-2 transition ' + getFlowerColors(key, isSelected)}
             type="button"
           >
             <Image

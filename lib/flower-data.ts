@@ -40,7 +40,8 @@ export function generateSlug(title: string): string {
     .trim()
     .replace(/[^\w\s-]/g, '') // Remove special chars
     .replace(/\s+/g, '-')      // Replace spaces with hyphens
-    .replace(/-+/g, '-');      // Replace multiple hyphens with single
+    .replace(/-+/g, '-')       // Replace multiple hyphens with single
+    .slice(0, 50);             // Truncate to max 50 characters
 
   // Append short UUID to ensure uniqueness while keeping slugs pretty
   const uniqueId = crypto.randomUUID().split('-')[0]; // First 8 chars of UUID

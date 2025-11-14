@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface PlantingDrawerProps {
   isOpen: boolean;
@@ -96,14 +97,20 @@ export function PlantingDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
+      <SheetContent side="right" className="w-[500px] sm:w-[650px] p-8 bg-yellow-50 overflow-hidden">
         <SheetHeader>
           <div className="flex items-start gap-4">
-            <span className="text-6xl">☀️</span>
+            <Image
+              src="/sun.png"
+              alt="Sun"
+              width={64}
+              height={64}
+              className="w-16 h-16 object-contain"
+            />
             <div className="flex-1">
               <SheetTitle>Plant a Flower</SheetTitle>
               <SheetDescription>
-                Share a positive message with the world
+                Share a positive message with the world. Spread peace and love.
               </SheetDescription>
             </div>
           </div>
@@ -121,6 +128,7 @@ export function PlantingDrawer({
               placeholder="Give your message a title"
               required
               maxLength={100}
+              className="bg-white"
             />
           </div>
 
@@ -136,6 +144,7 @@ export function PlantingDrawer({
               required
               rows={4}
               maxLength={500}
+              className="bg-white"
             />
           </div>
 
@@ -149,6 +158,7 @@ export function PlantingDrawer({
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="Anonymous"
               maxLength={50}
+              className="bg-white"
             />
           </div>
 
@@ -167,6 +177,7 @@ export function PlantingDrawer({
               type="submit"
               disabled={isLoading}
               className="w-full"
+              style={{ backgroundColor: '#D7F5D3' }}
             >
               {isLoading ? 'Planting...' : 'Plant Flower'}
             </Button>
