@@ -97,7 +97,7 @@ export function PlantingDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-[500px] sm:w-[650px] p-8 bg-yellow-50 overflow-hidden">
+      <SheetContent side="right" className="w-[500px] sm:w-[650px] p-8 py-6 bg-yellow-50 overflow-y-auto">
         <SheetHeader>
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
