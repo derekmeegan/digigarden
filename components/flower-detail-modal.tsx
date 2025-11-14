@@ -2,7 +2,8 @@
 
 import { Flower } from '@/types/flower';
 import { FLOWER_METADATA } from '@/lib/flower-data';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import * as SheetPrimitive from '@radix-ui/react-dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Copy, MessageCircle, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -91,8 +92,21 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose} modal={false}>
-      <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetPrimitive.Portal>
+        <SheetPrimitive.Overlay
+          className="fixed inset-0 z-50 bg-transparent cursor-pointer"
+          onClick={onClose}
+        />
+        <SheetPrimitive.Content
+          className="bg-background fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-[350px] sm:w-[450px] border-l overflow-y-auto p-8"
+        >
+          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+            <svg className="size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
         <SheetHeader>
           <SheetTitle className="text-2xl">{flower.title}</SheetTitle>
           <SheetDescription>
@@ -190,7 +204,8 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
             </div>
           </div>
         </div>
-      </SheetContent>
+        </SheetPrimitive.Content>
+      </SheetPrimitive.Portal>
     </Sheet>
   );
 }

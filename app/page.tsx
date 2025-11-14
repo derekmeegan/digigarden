@@ -32,6 +32,12 @@ export default function GardenPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Sun blink state
+  const [sunImage, setSunImage] = useState('/sun.png');
+  const sunHoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const sunBlinkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSunHovered, setIsSunHovered] = useState(false);
+
   // Clear scroll when entering viewing or planting states
   useEffect(() => {
     if (userState !== 'normal') {
@@ -241,6 +247,45 @@ export default function GardenPage() {
     setPlantingPosition(null);
   }, [preZoomOffset]);
 
+  // Sun blink function
+  const triggerSunBlink = useCallback(() => {
+    setSunImage('/sun_blink.png');
+    setTimeout(() => {
+      setSunImage('/sun.png');
+    }, 200); // Blink duration: 200ms
+  }, []);
+
+  // Sun hover handlers
+  const handleSunMouseEnter = useCallback(() => {
+    setIsSunHovered(true);
+    // Start timer for 2 seconds before first blink
+    sunHoverTimerRef.current = setTimeout(() => {
+      triggerSunBlink();
+      // Continue blinking every 3 seconds while hovered
+      sunBlinkIntervalRef.current = setInterval(() => {
+        triggerSunBlink();
+      }, 3000);
+    }, 2000);
+  }, [triggerSunBlink]);
+
+  const handleSunMouseLeave = useCallback(() => {
+    setIsSunHovered(false);
+    // Clear initial timer
+    if (sunHoverTimerRef.current) {
+      clearTimeout(sunHoverTimerRef.current);
+      sunHoverTimerRef.current = null;
+    }
+    // Clear ongoing blink interval
+    if (sunBlinkIntervalRef.current) {
+      clearInterval(sunBlinkIntervalRef.current);
+      sunBlinkIntervalRef.current = null;
+    }
+  }, []);
+
+  const handleSunClick = useCallback(() => {
+    triggerSunBlink();
+  }, [triggerSunBlink]);
+
 
   if (isLoading) {
     return (
@@ -269,9 +314,14 @@ export default function GardenPage() {
       <CloudsAnimation gardenOffset={offset} />
 
       {/* Sun */}
-      <div className="absolute top-8 left-16 z-[5]">
+      <div
+        className="absolute top-8 left-16 z-[5] cursor-pointer"
+        onMouseEnter={handleSunMouseEnter}
+        onMouseLeave={handleSunMouseLeave}
+        onClick={handleSunClick}
+      >
         <Image
-          src="/sun.png"
+          src={sunImage}
           alt="Sun"
           width={200}
           height={200}
@@ -342,9 +392,9 @@ export default function GardenPage() {
                     zIndex: 50,
                   };
                 } else if (userState === 'viewing' && isOtherFlowerSelected) {
-                  // Hide other flowers - fixed position (no offset)
+                  // Hide other flowers - use preZoomOffset (position when zoom started)
                   return {
-                    left: `${flower.x}px`,
+                    left: `${flower.x + preZoomOffset}px`,
                     top: `${flower.y}px`,
                     opacity: 0,
                     transform: 'scale(0.5)',
@@ -386,8 +436,8 @@ export default function GardenPage() {
                   <Image
                     src={FLOWER_METADATA[flower.flower].image}
                     alt={flower.title}
-                    width={80}
-                    height={80}
+                    width={100}
+                    height={100}
                     className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway flower-hover-glow' : ''} ${
                       newlyPlantedFlowerId === flower.id
                         ? 'animate-new-flower'
@@ -396,8 +446,7 @@ export default function GardenPage() {
                           : ''
                     }`}
                     style={{
-                      animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s',
-                      pointerEvents: 'none'
+                      animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s'
                     }}
                   />
 
@@ -425,8 +474,8 @@ export default function GardenPage() {
 
                     return (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
-                        <div className={`${colors.bg} ${colors.text} text-sm px-4 py-2 rounded-lg max-w-[200px] text-center shadow-lg border-2 ${colors.border}`}>
-                          <p className="font-semibold">{flower.title}</p>
+                        <div className={`${colors.bg} ${colors.text} text-sm px-5 py-3 rounded-lg min-w-[150px] max-w-[350px] text-center shadow-lg border-2 ${colors.border}`}>
+                          <p className="font-semibold text-base">{flower.title}</p>
                           {flower.author && (
                             <p className="text-xs mt-1 opacity-75">by {flower.author}</p>
                           )}

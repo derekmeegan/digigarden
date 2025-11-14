@@ -65,7 +65,7 @@ export default function CloudsAnimation({ gardenOffset }: CloudsAnimationProps) 
             left: `${cloud.x}px`,
           }}
         >
-          <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+          <svg width="160" height="80" viewBox="0 0 120 60" fill="none">
             <ellipse cx="30" cy="30" rx="25" ry="20" fill="white" fillOpacity="0.7" />
             <ellipse cx="60" cy="25" rx="35" ry="25" fill="white" fillOpacity="0.7" />
             <ellipse cx="90" cy="30" rx="30" ry="20" fill="white" fillOpacity="0.7" />
