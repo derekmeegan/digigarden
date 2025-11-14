@@ -98,15 +98,10 @@ export function PlantingDrawer({
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
         <SheetHeader>
-          <div className="flex items-center gap-3">
-            <div className="text-6xl">☀️</div>
-            <div className="flex-1">
-              <SheetTitle>Plant a Flower</SheetTitle>
-              <SheetDescription>
-                Share a positive message with the world
-              </SheetDescription>
-            </div>
-          </div>
+          <SheetTitle>☀️ Plant a Flower</SheetTitle>
+          <SheetDescription>
+            Share a positive message with the world
+          </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
