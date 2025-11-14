@@ -283,7 +283,7 @@ export default function GardenPage() {
 
       {/* Pannable Garden Container */}
       <div
-        className="absolute bottom-0 w-full h-[80vh] overflow-hidden"
+        className="absolute bottom-0 w-full h-[65vh] overflow-hidden"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -315,8 +315,12 @@ export default function GardenPage() {
             {visibleFlowers.map((flower, index) => (
               <div
                 key={flower.id}
-                className="absolute group cursor-pointer z-10"
-                style={{ left: flower.x, top: flower.y }}
+                className="absolute group z-10"
+                style={{
+                  left: flower.x,
+                  top: flower.y,
+                  cursor: 'pointer'
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();

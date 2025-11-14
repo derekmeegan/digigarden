@@ -8,25 +8,51 @@ interface FlowerSelectorProps {
 }
 
 export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelectorProps) {
+  const getFlowerColors = (flowerKey: string, isSelected: boolean) => {
+    if (!isSelected) {
+      return 'border-gray-200 bg-white hover:border-gray-400';
+    }
+
+    switch (flowerKey) {
+      case 'red-tulip':
+        return 'border-red-300 bg-red-50';
+      case 'white-rose':
+        return 'border-gray-300 bg-gray-50';
+      case 'yellow-sunflower':
+        return 'border-yellow-300 bg-yellow-50';
+      case 'pink-carnation':
+        return 'border-pink-300 bg-pink-50';
+      case 'blue-forget-me-not':
+        return 'border-blue-300 bg-blue-50';
+      default:
+        return 'border-green-500 bg-green-50';
+    }
+  };
+
+  const entries = Object.entries(FLOWER_METADATA);
+  const hasOddNumber = entries.length % 2 !== 0;
+
   return (
-    <div className="grid grid-cols-3 md:grid-cols-5 gap-4 my-4">
-      {Object.entries(FLOWER_METADATA).map(([key, meta]) => {
+    <div className="grid grid-cols-2 gap-4 my-4">
+      {entries.map(([key, meta], index) => {
         const isSelected = selectedFlower === key;
+        const isLastAndOdd = hasOddNumber && index === entries.length - 1;
+
         return (
           <button
             key={key}
             onClick={() => onFlowerChange(key as FlowerType)}
-            className={'flex flex-col items-center p-3 rounded-lg border-2 transition ' + (isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-400')}
+            className={'flex flex-col items-center p-4 rounded-lg border-2 transition ' + getFlowerColors(key, isSelected) + (isLastAndOdd ? ' col-span-2 max-w-[50%] mx-auto' : '')}
             type="button"
           >
             <Image
               src={meta.image}
               alt={meta.name}
-              width={64}
-              height={64}
-              className="w-16 h-16 object-contain"
+              width={80}
+              height={80}
+              className="w-20 h-20 object-contain"
             />
-            <span className="text-xs mt-2 text-center">{meta.name}</span>
+            <span className="text-sm mt-2 text-center font-medium">{meta.name}</span>
           </button>
         );
       })}

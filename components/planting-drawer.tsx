@@ -96,7 +96,7 @@ export function PlantingDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+      <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
         <SheetHeader>
           <SheetTitle>Plant a Flower</SheetTitle>
           <SheetDescription>
@@ -104,7 +104,7 @@ export function PlantingDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-8">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-2">
               Title <span className="text-red-500">*</span>
@@ -136,7 +136,7 @@ export function PlantingDrawer({
 
           <div>
             <label htmlFor="author" className="block text-sm font-medium mb-2">
-              Your Name (optional)
+              Your Name
             </label>
             <Input
               id="author"
@@ -157,21 +157,13 @@ export function PlantingDrawer({
             />
           </div>
 
-          <div className="flex gap-4">
+          <div>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1"
+              className="w-full"
             >
               {isLoading ? 'Planting...' : 'Plant Flower'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              Cancel
             </Button>
           </div>
         </form>

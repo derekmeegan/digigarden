@@ -65,7 +65,7 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
         <SheetHeader>
           <SheetTitle className="text-2xl">{flower.title}</SheetTitle>
           <SheetDescription>
@@ -73,7 +73,7 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-8">
           <div className="flex justify-center">
             <Image
               src={flowerMeta.image}

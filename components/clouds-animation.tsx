@@ -8,12 +8,16 @@ export default function CloudsAnimation() {
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
     return [
-      { id: 1, top: '5%', startX: Math.random() * viewportWidth, duration: 60 },
-      { id: 2, top: '15%', startX: Math.random() * viewportWidth, duration: 80 },
+      { id: 1, top: '2%', startX: Math.random() * viewportWidth, duration: 60 },
+      { id: 2, top: '25%', startX: Math.random() * viewportWidth, duration: 80 },
       { id: 3, top: '8%', startX: Math.random() * viewportWidth, duration: 70 },
-      { id: 4, top: '20%', startX: Math.random() * viewportWidth, duration: 90 },
+      { id: 4, top: '30%', startX: Math.random() * viewportWidth, duration: 90 },
       { id: 5, top: '12%', startX: Math.random() * viewportWidth, duration: 75 },
       { id: 6, top: '18%', startX: Math.random() * viewportWidth, duration: 65 },
+      { id: 7, top: '5%', startX: Math.random() * viewportWidth, duration: 85 },
+      { id: 8, top: '35%', startX: Math.random() * viewportWidth, duration: 95 },
+      { id: 9, top: '15%', startX: Math.random() * viewportWidth, duration: 68 },
+      { id: 10, top: '28%', startX: Math.random() * viewportWidth, duration: 72 },
     ];
   }, []);
 
