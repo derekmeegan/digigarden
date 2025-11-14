@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { FLOWER_METADATA } from '@/lib/flower-data';
+import { Flower, FlowerType } from '@/types/flower';
 import GardenPage from '@/app/page';
 
 interface PageProps {
@@ -11,7 +12,7 @@ interface PageProps {
 // Generate metadata for social sharing
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  
+
   const { data: flower, error } = await supabase
     .from('flowers')
     .select('*')
@@ -24,7 +25,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const flowerMeta = FLOWER_METADATA[flower.flower];
+  // Type the flower data properly
+  const typedFlower = flower as Flower;
+  const flowerMeta = FLOWER_METADATA[typedFlower.flower as FlowerType];
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   return {
