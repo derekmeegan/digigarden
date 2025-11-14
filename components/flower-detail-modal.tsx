@@ -14,6 +14,33 @@ interface FlowerDetailModalProps {
   onClose: () => void;
 }
 
+// Pastel color palette
+const PASTEL_COLORS = [
+  { bg: '#9bf6ff', text: '#0d4a52' }, // blue
+  { bg: '#caffbf', text: '#2d5a1f' }, // green
+  { bg: '#fdffb6', text: '#6b6d00' }, // yellow
+  { bg: '#ffd6a5', text: '#8b5a00' }, // orange
+  { bg: '#ffadad', text: '#7f1f1f' }, // red
+];
+
+// Assign a color to a tag based on the tag name and flower identifier
+// This ensures each flower gets different random colors for its tags
+const getTagColor = (tag: string, flowerId: string): { bg: string; text: string } => {
+  // Combine tag name with flower ID to create a unique hash
+  // This makes colors random per flower but consistent for the same flower
+  const combined = `${tag.toLowerCase()}-${flowerId}`;
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    const char = combined.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  // Use absolute value and modulo to get an index
+  const index = Math.abs(hash) % PASTEL_COLORS.length;
+  return PASTEL_COLORS[index];
+};
+
 export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModalProps) {
   if (!flower) return null;
 
@@ -87,11 +114,21 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
           <div>
             <p className="text-sm text-gray-600 mb-2">{flowerMeta.description}</p>
             <div className="flex gap-2 flex-wrap">
-              {flowerMeta.tags.map(tag => (
-                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                  {tag}
-                </span>
-              ))}
+              {flowerMeta.tags.map(tag => {
+                const colors = getTagColor(tag, flower.slug);
+                return (
+                  <span 
+                    key={tag} 
+                    className="px-2 py-1 text-xs rounded"
+                    style={{ 
+                      backgroundColor: colors.bg, 
+                      color: colors.text 
+                    }}
+                  >
+                    {tag}
+                  </span>
+                );
+              })}
             </div>
           </div>
 
