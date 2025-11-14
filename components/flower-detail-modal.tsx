@@ -64,7 +64,7 @@ export function FlowerDetailModal({ flower, isOpen, onClose }: FlowerDetailModal
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={onClose} modal={false}>
       <SheetContent side="right" className="w-[500px] sm:w-[650px] overflow-y-auto p-8">
         <SheetHeader>
           <SheetTitle className="text-2xl">{flower.title}</SheetTitle>

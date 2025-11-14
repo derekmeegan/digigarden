@@ -14,16 +14,16 @@ export default function CloudsAnimation({ gardenOffset }: CloudsAnimationProps) 
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
     const initialClouds = [
-      { id: 1, top: '2%', x: Math.random() * viewportWidth, speed: 0.5 },
-      { id: 2, top: '25%', x: Math.random() * viewportWidth, speed: 0.3 },
-      { id: 3, top: '8%', x: Math.random() * viewportWidth, speed: 0.4 },
-      { id: 4, top: '30%', x: Math.random() * viewportWidth, speed: 0.25 },
-      { id: 5, top: '12%', x: Math.random() * viewportWidth, speed: 0.45 },
-      { id: 6, top: '18%', x: Math.random() * viewportWidth, speed: 0.35 },
-      { id: 7, top: '5%', x: Math.random() * viewportWidth, speed: 0.42 },
-      { id: 8, top: '35%', x: Math.random() * viewportWidth, speed: 0.28 },
-      { id: 9, top: '15%', x: Math.random() * viewportWidth, speed: 0.48 },
-      { id: 10, top: '28%', x: Math.random() * viewportWidth, speed: 0.38 },
+      { id: 1, top: '2%', x: Math.random() * viewportWidth, speed: 0.15 },
+      { id: 2, top: '25%', x: Math.random() * viewportWidth, speed: 0.1 },
+      { id: 3, top: '8%', x: Math.random() * viewportWidth, speed: 0.13 },
+      { id: 4, top: '30%', x: Math.random() * viewportWidth, speed: 0.08 },
+      { id: 5, top: '12%', x: Math.random() * viewportWidth, speed: 0.14 },
+      { id: 6, top: '18%', x: Math.random() * viewportWidth, speed: 0.11 },
+      { id: 7, top: '5%', x: Math.random() * viewportWidth, speed: 0.12 },
+      { id: 8, top: '35%', x: Math.random() * viewportWidth, speed: 0.09 },
+      { id: 9, top: '15%', x: Math.random() * viewportWidth, speed: 0.16 },
+      { id: 10, top: '28%', x: Math.random() * viewportWidth, speed: 0.12 },
     ];
 
     setCloudPositions(initialClouds);
@@ -55,7 +55,7 @@ export default function CloudsAnimation({ gardenOffset }: CloudsAnimationProps) 
   }, []);
 
   return (
-    <div className="absolute top-0 left-0 w-full h-[30%] overflow-hidden pointer-events-none">
+    <div className="absolute top-0 left-0 w-full h-[30%] overflow-hidden pointer-events-none z-10">
       {cloudPositions.map(cloud => (
         <div
           key={cloud.id}

@@ -100,6 +100,35 @@ export default function GardenPage() {
     }
   }, [isLoading]);
 
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathSegments = window.location.pathname.split('/');
+
+      if (pathSegments[1] === 'flower' && pathSegments[2]) {
+        // User navigated to a flower URL
+        const slug = pathSegments[2];
+        const flower = allFlowers.find(f => f.slug === slug);
+
+        if (flower) {
+          setPreZoomOffset(offset);
+          setSelectedFlower(flower);
+          setUserState('viewing');
+        }
+      } else {
+        // User navigated back to home
+        if (userState === 'viewing') {
+          setOffset(preZoomOffset);
+          setUserState('normal');
+          setSelectedFlower(null);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [allFlowers, offset, userState, preZoomOffset]);
+
 
   // Viewport culling
   const visibleFlowers = useMemo(() => {
@@ -123,6 +152,8 @@ export default function GardenPage() {
     setPreZoomOffset(offset);
     setSelectedFlower(flower);
     setUserState('viewing');
+    // Update URL with flower slug for sharing
+    window.history.pushState({}, '', `/flower/${flower.slug}`);
   }, [offset]);
 
   const handleExitViewing = useCallback(() => {
@@ -130,6 +161,8 @@ export default function GardenPage() {
     setOffset(preZoomOffset);
     setUserState('normal');
     setSelectedFlower(null);
+    // Return to home URL
+    window.history.pushState({}, '', '/');
   }, [preZoomOffset]);
 
   const handleGrassClick = useCallback((e: React.MouseEvent) => {
@@ -198,10 +231,10 @@ export default function GardenPage() {
     setAllFlowers(prev => [...prev, flower]);
     // Mark this flower as newly planted
     setNewlyPlantedFlowerId(flower.id);
-    // Remove the glow after 6 seconds (2s animation × 3 iterations)
+    // Remove the glow after 12.5 seconds (2.5s animation × 5 iterations)
     setTimeout(() => {
       setNewlyPlantedFlowerId(null);
-    }, 6000);
+    }, 12500);
     // Restore offset and exit planting state
     setOffset(preZoomOffset);
     setUserState('normal');
@@ -222,7 +255,7 @@ export default function GardenPage() {
   return (
     <div className="fixed inset-0 overflow-hidden">
       {/* Fixed Background - hoisted up */}
-      <div className="absolute inset-0 -top-[35px]">
+      <div className="absolute inset-0 -top-[35px] z-0">
         <Image
           src="/background.png"
           alt="Garden background"
@@ -234,6 +267,17 @@ export default function GardenPage() {
 
       {/* Clouds Layer */}
       <CloudsAnimation gardenOffset={offset} />
+
+      {/* Sun */}
+      <div className="absolute top-8 left-16 z-[5]">
+        <Image
+          src="/sun.png"
+          alt="Sun"
+          width={200}
+          height={200}
+          priority
+        />
+      </div>
 
       {/* Music Player */}
       <MusicPlayer />
@@ -292,9 +336,9 @@ export default function GardenPage() {
                 if (userState === 'viewing' && isThisFlowerSelected) {
                   // Move to center - adjusted for better positioning
                   return {
-                    left: `${viewportWidth / 2}px`,
-                    top: `${viewportHeight * 0.45}px`, // Slightly above center
-                    transform: 'translate(-50%, -50%) scale(2)',
+                    left: `${viewportWidth / 2 - 150}px`,
+                    top: `${viewportHeight * 0.15}px`, // Higher on screen
+                    transform: 'translate(-50%, -50%) scale(3)', // Larger scale
                     zIndex: 50,
                   };
                 } else if (userState === 'viewing' && isOtherFlowerSelected) {
@@ -318,7 +362,7 @@ export default function GardenPage() {
               return (
                 <div
                   key={flower.id}
-                  className="absolute group transition-all duration-700 ease-in-out cursor-pointer"
+                  className="absolute group transition-all duration-700 ease-in-out flower-clickable"
                   style={getFlowerStyle()}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -344,7 +388,13 @@ export default function GardenPage() {
                     alt={flower.title}
                     width={80}
                     height={80}
-                    className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway' : ''} ${newlyPlantedFlowerId === flower.id ? 'animate-new-flower' : ''}`}
+                    className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway flower-hover-glow' : ''} ${
+                      newlyPlantedFlowerId === flower.id
+                        ? 'animate-new-flower'
+                        : (isThisFlowerSelected && userState === 'viewing')
+                          ? 'animate-viewing-flower'
+                          : ''
+                    }`}
                     style={{
                       animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s',
                       pointerEvents: 'none'
@@ -352,15 +402,39 @@ export default function GardenPage() {
                   />
 
                   {/* Hover Preview Tooltip */}
-                  {userState === 'normal' && !isOtherFlowerSelected && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
-                      <div className="bg-black/90 text-white text-sm px-3 py-2 rounded-lg max-w-[200px] text-center shadow-lg">
-                        <p className="font-semibold">{flower.title}</p>
-                        <p className="text-xs mt-1 line-clamp-2">{flower.message}</p>
+                  {userState === 'normal' && !isOtherFlowerSelected && (() => {
+                    // Get tooltip colors based on flower type
+                    const getTooltipColors = () => {
+                      switch (flower.flower) {
+                        case 'red-tulip':
+                          return { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-900', arrow: 'border-t-red-50' };
+                        case 'white-rose':
+                          return { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-900', arrow: 'border-t-gray-50' };
+                        case 'yellow-sunflower':
+                          return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', arrow: 'border-t-yellow-50' };
+                        case 'pink-carnation':
+                          return { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-900', arrow: 'border-t-pink-50' };
+                        case 'blue-forget-me-not':
+                          return { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', arrow: 'border-t-blue-50' };
+                        default:
+                          return { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-900', arrow: 'border-t-gray-50' };
+                      }
+                    };
+
+                    const colors = getTooltipColors();
+
+                    return (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
+                        <div className={`${colors.bg} ${colors.text} text-sm px-4 py-2 rounded-lg max-w-[200px] text-center shadow-lg border-2 ${colors.border}`}>
+                          <p className="font-semibold">{flower.title}</p>
+                          {flower.author && (
+                            <p className="text-xs mt-1 opacity-75">by {flower.author}</p>
+                          )}
+                        </div>
+                        <div className={`w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${colors.arrow} mx-auto`}></div>
                       </div>
-                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90 mx-auto"></div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               );
             })}
