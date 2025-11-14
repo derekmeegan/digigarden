@@ -1,4 +1,4 @@
-export type FlowerType = 'red-tulip' | 'yellow-sunflower' | 'blue-forget-me-not' | 'white-rose' | 'pink-carnation';
+export type FlowerType = 'red-tulip' | 'yellow-sunflower' | 'blue-forget-me-not' | 'white-rose' | 'pink-carnation' | 'orange-lily';
 
 export interface Flower {
   id: string;

@@ -416,11 +416,14 @@ export default function GardenPage() {
                 };
               };
 
+              const flowerStyle = getFlowerStyle();
+              const { zIndex, ...restStyle } = flowerStyle;
+
               return (
                 <div
                   key={flower.id}
-                  className="absolute group transition-all duration-700 ease-in-out flower-clickable"
-                  style={getFlowerStyle()}
+                  className="absolute group transition-all duration-700 ease-in-out flower-clickable hover:!z-[100]"
+                  style={{ ...restStyle, zIndex }}
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -445,7 +448,7 @@ export default function GardenPage() {
                     alt={flower.title}
                     width={flower.flower === 'blue-forget-me-not' || flower.flower === 'white-rose' ? 115 : 100}
                     height={flower.flower === 'blue-forget-me-not' || flower.flower === 'white-rose' ? 115 : 100}
-                    className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway flower-hover-glow' : ''} ${
+                    className={`relative z-[1] transition ${!isZoomed ? 'hover:scale-110 animate-sway flower-hover-glow' : ''} ${
                       newlyPlantedFlowerId === flower.id
                         ? 'animate-new-flower'
                         : (isThisFlowerSelected && userState === 'viewing')
@@ -472,6 +475,8 @@ export default function GardenPage() {
                           return { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-900', arrow: 'border-t-pink-50' };
                         case 'blue-forget-me-not':
                           return { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', arrow: 'border-t-blue-50' };
+                        case 'orange-lily':
+                          return { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-900', arrow: 'border-t-orange-50' };
                         default:
                           return { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-900', arrow: 'border-t-gray-50' };
                       }
@@ -484,7 +489,7 @@ export default function GardenPage() {
                       : flower.title;
 
                     return (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[20]">
                         <div className={`${colors.bg} ${colors.text} text-sm px-5 py-3 rounded-lg min-w-[150px] max-w-[350px] text-center shadow-lg border-2 ${colors.border}`}>
                           <p className="font-semibold text-base">{displayTitle}</p>
                           {flower.author && (

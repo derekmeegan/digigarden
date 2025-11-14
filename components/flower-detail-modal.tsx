@@ -72,6 +72,8 @@ const getFlowerBgColor = (flowerType: string) => {
       return 'bg-pink-50';
     case 'blue-forget-me-not':
       return 'bg-blue-50';
+    case 'orange-lily':
+      return 'bg-orange-50';
     default:
       return 'bg-gray-50';
   }

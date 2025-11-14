@@ -30,6 +30,12 @@ export const FLOWER_METADATA: Record<FlowerType, FlowerMetadata> = {
     description: 'A promise of lasting memory and connection.',
     tags: ['Dreamy', 'Eternal', 'Remembered'],
     image: '/fmn.png'
+  },
+  'orange-lily': {
+    name: 'Orange Lily',
+    description: 'A symbol of confidence, pride, and wealth.',
+    tags: ['Vibrant', 'Confident', 'Energetic'],
+    image: '/lily.png'
   }
 };
 

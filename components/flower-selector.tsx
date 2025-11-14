@@ -24,6 +24,8 @@ export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelecto
         return 'border-pink-300 bg-pink-50';
       case 'blue-forget-me-not':
         return 'border-blue-300 bg-blue-50';
+      case 'orange-lily':
+        return 'border-orange-300 bg-orange-50';
       default:
         return 'border-green-500 bg-green-50';
     }
