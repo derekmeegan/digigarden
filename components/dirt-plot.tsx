@@ -17,6 +17,7 @@ export function DirtPlot({ x, y, visible }: DirtPlotProps) {
         top: y,
         opacity: visible ? 1 : 0,
         transform: 'translate(-50%, -50%)',
+        zIndex: 50,
       }}
     >
       <Image

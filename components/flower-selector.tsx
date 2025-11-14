@@ -1,6 +1,7 @@
 import { FlowerType } from '@/types/flower';
 import { FLOWER_METADATA } from '@/lib/flower-data';
 import Image from 'next/image';
+import { useState, useRef } from 'react';
 
 interface FlowerSelectorProps {
   selectedFlower: FlowerType;
@@ -8,6 +9,8 @@ interface FlowerSelectorProps {
 }
 
 export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelectorProps) {
+  const [hoveredFlower, setHoveredFlower] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const getFlowerColors = (flowerKey: string, isSelected: boolean) => {
     if (!isSelected) {
       return 'border-gray-200 bg-white hover:border-gray-400';
@@ -33,16 +36,35 @@ export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelecto
 
   const entries = Object.entries(FLOWER_METADATA);
 
+  const handleMouseEnter = (key: string) => {
+    // Start timer for 800ms before showing tooltip
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredFlower(key);
+    }, 800);
+  };
+
+  const handleMouseLeave = () => {
+    // Clear timer if user stops hovering before delay
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredFlower(null);
+  };
+
   return (
     <div className="grid grid-cols-2 gap-4 my-4">
       {entries.map(([key, meta]) => {
         const isSelected = selectedFlower === key;
+        const showTooltip = hoveredFlower === key;
 
         return (
           <button
             key={key}
             onClick={() => onFlowerChange(key as FlowerType)}
-            className={'flex flex-col items-center p-4 rounded-lg border-2 transition ' + getFlowerColors(key, isSelected)}
+            onMouseEnter={() => handleMouseEnter(key)}
+            onMouseLeave={handleMouseLeave}
+            className={'relative flex flex-col items-center p-4 rounded-lg border-2 transition ' + getFlowerColors(key, isSelected)}
             type="button"
           >
             <Image
@@ -53,6 +75,16 @@ export function FlowerSelector({ selectedFlower, onFlowerChange }: FlowerSelecto
               className="w-20 h-20 object-contain"
             />
             <span className="text-sm mt-2 text-center font-medium">{meta.name}</span>
+
+            {/* Tooltip */}
+            {showTooltip && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 animate-in fade-in duration-200 pointer-events-none z-50">
+                <div className="bg-white text-gray-800 text-xs px-3 py-2 rounded-lg min-w-[200px] max-w-[250px] text-center shadow-lg border border-gray-200">
+                  <p className="font-medium">{meta.description}</p>
+                </div>
+                <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white mx-auto"></div>
+              </div>
+            )}
           </button>
         );
       })}

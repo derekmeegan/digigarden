@@ -100,13 +100,16 @@ export function PlantingDrawer({
       <SheetContent side="right" className="w-[500px] sm:w-[650px] p-8 bg-yellow-50 overflow-hidden">
         <SheetHeader>
           <div className="flex items-start gap-4">
-            <Image
-              src="/sun.png"
-              alt="Sun"
-              width={64}
-              height={64}
-              className="w-16 h-16 object-contain"
-            />
+            <div className="flex-shrink-0">
+              <Image
+                src="/sun.png"
+                alt="Sun"
+                width={64}
+                height={64}
+                className="w-16 h-16 object-contain"
+                priority
+              />
+            </div>
             <div className="flex-1">
               <SheetTitle>Plant a Flower</SheetTitle>
               <SheetDescription>
