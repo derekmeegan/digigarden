@@ -26,6 +26,7 @@ export default function GardenPage() {
   const [allFlowers, setAllFlowers] = useState<Flower[]>([]);
   const [selectedFlower, setSelectedFlower] = useState<Flower | null>(null);
   const [plantingPosition, setPlantingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [newlyPlantedFlowerId, setNewlyPlantedFlowerId] = useState<string | null>(null);
 
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -102,8 +103,9 @@ export default function GardenPage() {
 
   // Viewport culling
   const visibleFlowers = useMemo(() => {
-    if (userState === 'viewing' && selectedFlower) {
-      return [selectedFlower];
+    // Show all flowers when viewing or planting (we'll handle their visibility individually)
+    if (userState === 'viewing' || userState === 'planting') {
+      return allFlowers;
     }
 
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
@@ -119,17 +121,8 @@ export default function GardenPage() {
   const handleFlowerClick = useCallback((flower: Flower) => {
     // Store current offset before zooming
     setPreZoomOffset(offset);
-
     setSelectedFlower(flower);
     setUserState('viewing');
-
-    // Center the flower in viewport
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
-
-    // Calculate new offset to center the flower
-    const newOffset = viewportWidth / 2 - flower.x;
-    setOffset(newOffset);
   }, [offset]);
 
   const handleExitViewing = useCallback(() => {
@@ -160,10 +153,6 @@ export default function GardenPage() {
       const absoluteX = clickX - offset;
       setPlantingPosition({ x: absoluteX, y: clickY });
       setUserState('planting');
-
-      // Center the planting position in viewport
-      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
-      setOffset(viewportWidth / 2 - absoluteX);
     }
   }, [userState, offset, handleExitViewing]);
 
@@ -181,8 +170,8 @@ export default function GardenPage() {
       return;
     }
 
-    const edgeThreshold = 150; // pixels from edge to start scrolling
-    const maxSpeed = 4; // Reduced from 8 to 4 for slower movement
+    const edgeThreshold = 200; // pixels from edge to start scrolling (increased from 150)
+    const maxSpeed = 8; // Maximum scroll speed
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
     const distanceFromLeft = e.clientX;
@@ -207,33 +196,18 @@ export default function GardenPage() {
 
   const handlePlantSuccess = useCallback((flower: Flower) => {
     setAllFlowers(prev => [...prev, flower]);
+    // Mark this flower as newly planted
+    setNewlyPlantedFlowerId(flower.id);
+    // Remove the glow after 6 seconds (2s animation × 3 iterations)
+    setTimeout(() => {
+      setNewlyPlantedFlowerId(null);
+    }, 6000);
     // Restore offset and exit planting state
     setOffset(preZoomOffset);
     setUserState('normal');
     setPlantingPosition(null);
   }, [preZoomOffset]);
 
-  const isZoomed = userState === 'viewing' || userState === 'planting';
-
-  // Calculate transform origin for zooming
-  const getTransformOrigin = useMemo(() => {
-    if (!isZoomed) return 'center center';
-
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
-    const containerHeight = viewportHeight * 0.8; // 80vh
-
-    if (userState === 'viewing' && selectedFlower) {
-      // Since we center the flower horizontally with offset, it will be at viewport center
-      // For vertical, calculate relative to the container
-      return `${viewportWidth / 2}px ${selectedFlower.y}px`;
-    } else if (userState === 'planting' && plantingPosition) {
-      // Same logic for planting position
-      return `${viewportWidth / 2}px ${plantingPosition.y}px`;
-    }
-
-    return 'center center';
-  }, [isZoomed, userState, selectedFlower, plantingPosition]);
 
   if (isLoading) {
     return (
@@ -247,17 +221,19 @@ export default function GardenPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden">
-      {/* Fixed Background */}
-      <Image
-        src="/background.png"
-        alt="Garden background"
-        fill
-        className="object-cover object-top"
-        priority
-      />
+      {/* Fixed Background - hoisted up */}
+      <div className="absolute inset-0 -top-[35px]">
+        <Image
+          src="/background.png"
+          alt="Garden background"
+          fill
+          className="object-cover object-top"
+          priority
+        />
+      </div>
 
       {/* Clouds Layer */}
-      <CloudsAnimation />
+      <CloudsAnimation gardenOffset={offset} />
 
       {/* Music Player */}
       <MusicPlayer />
@@ -270,7 +246,8 @@ export default function GardenPage() {
       )}
 
       {/* Scroll Indicators */}
-      {userState === 'normal' && (
+      {/* DISABLED: horizontal scrolling indicators */}
+      {/* {userState === 'normal' && (
         <>
           <div className="absolute left-4 bottom-[40vh] z-20 pointer-events-none">
             <ChevronLeft className="w-16 h-16 text-white/90" strokeWidth={2.5} />
@@ -279,29 +256,19 @@ export default function GardenPage() {
             <ChevronRight className="w-16 h-16 text-white/90" strokeWidth={2.5} />
           </div>
         </>
-      )}
+      )} */}
 
       {/* Pannable Garden Container */}
       <div
-        className="absolute bottom-0 w-full h-[65vh] overflow-hidden"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
+        className="absolute bottom-0 w-full h-[65vh]"
+        style={{ overflow: 'visible' }}
+        // onMouseMove={handleMouseMove} // DISABLED: horizontal scrolling
+        // onMouseLeave={handleMouseLeave} // DISABLED: horizontal scrolling
       >
         <div
-          className="relative h-full cursor-shovel transition-all duration-500 ease-out"
-          style={{
-            transform: `translateX(${offset}px)`,
-            willChange: 'transform'
-          }}
+          className="relative h-full cursor-shovel"
           onClick={handleGrassClick}
         >
-          <div
-            className="transition-transform duration-500"
-            style={{
-              transform: isZoomed ? 'scale(2)' : 'scale(1)',
-              transformOrigin: getTransformOrigin
-            }}
-          >
             {/* Dirt Plot Preview */}
             {plantingPosition && userState === 'planting' && (
               <DirtPlot
@@ -312,55 +279,91 @@ export default function GardenPage() {
             )}
 
             {/* Flowers */}
-            {visibleFlowers.map((flower, index) => (
-              <div
-                key={flower.id}
-                className="absolute group z-10"
-                style={{
-                  left: flower.x,
-                  top: flower.y,
-                  cursor: 'pointer'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  handleFlowerClick(flower);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleFlowerClick(flower);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`View ${flower.title}`}
-              >
-                <Image
-                  src={FLOWER_METADATA[flower.flower].image}
-                  alt={flower.title}
-                  width={80}
-                  height={80}
-                  className={`hover:scale-110 transition ${!isZoomed ? 'animate-sway' : 'w-32 h-32'}`}
-                  style={{
-                    animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s'
-                  }}
-                />
+            {visibleFlowers.map((flower) => {
+              const isThisFlowerSelected = selectedFlower?.id === flower.id;
+              const isOtherFlowerSelected = selectedFlower !== null && !isThisFlowerSelected;
+              const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+              const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 
-                {/* Hover Preview Tooltip */}
-                {userState === 'normal' && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                    <div className="bg-black/90 text-white text-sm px-3 py-2 rounded-lg max-w-[200px] text-center">
-                      <p className="font-semibold">{flower.title}</p>
-                      <p className="text-xs mt-1 line-clamp-2">{flower.message}</p>
+              const isZoomed = userState === 'viewing' || userState === 'planting';
+
+              // Calculate flower position
+              const getFlowerStyle = () => {
+                if (userState === 'viewing' && isThisFlowerSelected) {
+                  // Move to center - adjusted for better positioning
+                  return {
+                    left: `${viewportWidth / 2}px`,
+                    top: `${viewportHeight * 0.45}px`, // Slightly above center
+                    transform: 'translate(-50%, -50%) scale(2)',
+                    zIndex: 50,
+                  };
+                } else if (userState === 'viewing' && isOtherFlowerSelected) {
+                  // Hide other flowers - fixed position (no offset)
+                  return {
+                    left: `${flower.x}px`,
+                    top: `${flower.y}px`,
+                    opacity: 0,
+                    transform: 'scale(0.5)',
+                    zIndex: 10,
+                  };
+                }
+                // Normal position (including planting mode) - apply scroll offset
+                return {
+                  left: `${flower.x + offset}px`,
+                  top: `${flower.y}px`,
+                  zIndex: 10,
+                };
+              };
+
+              return (
+                <div
+                  key={flower.id}
+                  className="absolute group transition-all duration-700 ease-in-out cursor-pointer"
+                  style={getFlowerStyle()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleFlowerClick(flower);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleFlowerClick(flower);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`View ${flower.title}`}
+                >
+                  {/* Expanded clickable area */}
+                  <div className="absolute -inset-4 z-0" />
+
+                  <Image
+                    src={FLOWER_METADATA[flower.flower].image}
+                    alt={flower.title}
+                    width={80}
+                    height={80}
+                    className={`relative z-10 transition ${!isZoomed ? 'hover:scale-110 animate-sway' : ''} ${newlyPlantedFlowerId === flower.id ? 'animate-new-flower' : ''}`}
+                    style={{
+                      animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s',
+                      pointerEvents: 'none'
+                    }}
+                  />
+
+                  {/* Hover Preview Tooltip */}
+                  {userState === 'normal' && !isOtherFlowerSelected && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ zIndex: 9999 }}>
+                      <div className="bg-black/90 text-white text-sm px-3 py-2 rounded-lg max-w-[200px] text-center shadow-lg">
+                        <p className="font-semibold">{flower.title}</p>
+                        <p className="text-xs mt-1 line-clamp-2">{flower.message}</p>
+                      </div>
+                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90 mx-auto"></div>
                     </div>
-                    <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90 mx-auto"></div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  )}
+                </div>
+              );
+            })}
         </div>
       </div>
 

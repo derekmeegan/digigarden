@@ -22,26 +22,42 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { title, message, author, x, y, flower } = body;
+  try {
+    const body = await request.json();
+    const { title, message, author, x, y, flower } = body;
 
-  // Validation
-  if (!title || !message || x === undefined || y === undefined || !flower) {
-    return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    // Validation
+    if (!title || !message || x === undefined || y === undefined || !flower) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Generate slug from title
+    const slug = generateSlug(title);
+
+    const insertData = {
+      title,
+      slug,
+      message,
+      author: author || null,
+      x: Math.round(x),
+      y: Math.round(y),
+      flower
+    };
+
+    const { data, error } = await supabase
+      .from('flowers')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return Response.json({ error: error.message }, { status: 500 });
+    }
+
+    return Response.json(data);
+  } catch (err) {
+    console.error('POST /api/flowers error:', err);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  // Generate slug from title
-  const slug = generateSlug(title);
-
-  const { data, error } = await supabase
-    .from('flowers')
-    .insert({ title, slug, message, author, x, y, flower })
-    .select()
-    .single();
-
-  if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
-
-  return Response.json(data);
 }

@@ -22,8 +22,8 @@ export function DirtPlot({ x, y, visible }: DirtPlotProps) {
       <Image
         src="/dirt.png"
         alt="Planting location"
-        width={64}
-        height={64}
+        width={120}
+        height={120}
         className="pointer-events-none"
       />
     </div>

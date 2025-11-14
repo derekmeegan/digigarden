@@ -167,3 +167,17 @@
     transform: translateX(calc(100vw + 150px));
   }
 }
+
+/* Soft glow animation for newly planted flowers */
+@keyframes soft-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 223, 0, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 223, 0, 0.9));
+  }
+}
+
+.animate-new-flower {
+  animation: soft-glow 2s ease-in-out 3;
+}
