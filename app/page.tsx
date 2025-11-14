@@ -1,65 +1,379 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Flower } from '@/types/flower';
+import { FLOWER_METADATA } from '@/lib/flower-data';
+import CloudsAnimation from '@/components/clouds-animation';
+import { MusicPlayer } from '@/components/music-player';
+import { DirtPlot } from '@/components/dirt-plot';
+import { PlantingDrawer } from '@/components/planting-drawer';
+import { FlowerDetailModal } from '@/components/flower-detail-modal';
+
+type UserState = 'normal' | 'viewing' | 'planting';
+
+export default function GardenPage() {
+  // State machine
+  const [userState, setUserState] = useState<UserState>('normal');
+
+  // Scroll state
+  const [offset, setOffset] = useState(0);
+  const [scrollSpeed, setScrollSpeed] = useState(0);
+  const [preZoomOffset, setPreZoomOffset] = useState(0); // Store offset before zooming
+
+  // Flower state
+  const [allFlowers, setAllFlowers] = useState<Flower[]>([]);
+  const [selectedFlower, setSelectedFlower] = useState<Flower | null>(null);
+  const [plantingPosition, setPlantingPosition] = useState<{ x: number; y: number } | null>(null);
+
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Clear scroll when entering viewing or planting states
+  useEffect(() => {
+    if (userState !== 'normal') {
+      setScrollSpeed(0);
+    }
+  }, [userState]);
+
+  // Auto-scroll based on cursor position (edge scrolling)
+  useEffect(() => {
+    if (userState !== 'normal' || scrollSpeed === 0) return;
+
+    let animationFrame: number;
+    const scroll = () => {
+      setOffset(prev => prev + scrollSpeed);
+      animationFrame = requestAnimationFrame(scroll);
+    };
+
+    animationFrame = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [scrollSpeed, userState]);
+
+  // Load all flowers on mount
+  useEffect(() => {
+    setIsLoading(true);
+    fetch('/api/flowers')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load flowers');
+        return res.json();
+      })
+      .then(data => {
+        setAllFlowers(data || []);
+        setError(null);
+      })
+      .catch(err => {
+        console.error(err);
+        setError('Failed to load garden. Please refresh.');
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  // Handle shared flower from URL
+  useEffect(() => {
+    if (isLoading) return;
+
+    const pathSegments = window.location.pathname.split('/');
+    if (pathSegments[1] === 'flower' && pathSegments[2]) {
+      const slug = pathSegments[2];
+
+      fetch(`/api/flowers/${slug}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Flower not found');
+          return res.json();
+        })
+        .then(flower => {
+          setAllFlowers(prev => {
+            const exists = prev.some(f => f.id === flower.id);
+            return exists ? prev : [...prev, flower];
+          });
+
+          handleFlowerClick(flower);
+        })
+        .catch(err => {
+          console.error(err);
+          setError('Shared flower not found');
+        });
+    }
+  }, [isLoading]);
+
+
+  // Viewport culling
+  const visibleFlowers = useMemo(() => {
+    if (userState === 'viewing' && selectedFlower) {
+      return [selectedFlower];
+    }
+
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const buffer = 300;
+
+    return allFlowers.filter(flower => {
+      const screenX = flower.x + offset;
+      return screenX > -buffer && screenX < viewportWidth + buffer;
+    });
+  }, [offset, allFlowers, userState, selectedFlower]);
+
+  // Handlers
+  const handleFlowerClick = useCallback((flower: Flower) => {
+    // Store current offset before zooming
+    setPreZoomOffset(offset);
+
+    setSelectedFlower(flower);
+    setUserState('viewing');
+
+    // Center the flower in viewport
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+
+    // Calculate new offset to center the flower
+    const newOffset = viewportWidth / 2 - flower.x;
+    setOffset(newOffset);
+  }, [offset]);
+
+  const handleExitViewing = useCallback(() => {
+    // Restore previous offset when exiting zoom
+    setOffset(preZoomOffset);
+    setUserState('normal');
+    setSelectedFlower(null);
+  }, [preZoomOffset]);
+
+  const handleGrassClick = useCallback((e: React.MouseEvent) => {
+    if (userState === 'viewing') {
+      handleExitViewing();
+      return;
+    }
+
+    if (userState === 'planting') {
+      return;
+    }
+
+    // Store current offset before zooming for planting
+    setPreZoomOffset(offset);
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+    const clickX = e.clientX - rect.left;
+
+    if (clickY >= 0 && clickY <= rect.height) {
+      const absoluteX = clickX - offset;
+      setPlantingPosition({ x: absoluteX, y: clickY });
+      setUserState('planting');
+
+      // Center the planting position in viewport
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      setOffset(viewportWidth / 2 - absoluteX);
+    }
+  }, [userState, offset, handleExitViewing]);
+
+  const handleExitPlanting = useCallback(() => {
+    // Restore previous offset when exiting planting
+    setOffset(preZoomOffset);
+    setUserState('normal');
+    setPlantingPosition(null);
+  }, [preZoomOffset]);
+
+  // Handle mouse movement for edge scrolling
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (userState !== 'normal') {
+      setScrollSpeed(0);
+      return;
+    }
+
+    const edgeThreshold = 150; // pixels from edge to start scrolling
+    const maxSpeed = 4; // Reduced from 8 to 4 for slower movement
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+    const distanceFromLeft = e.clientX;
+    const distanceFromRight = viewportWidth - e.clientX;
+
+    if (distanceFromLeft < edgeThreshold) {
+      // Scroll right (positive offset)
+      const intensity = 1 - (distanceFromLeft / edgeThreshold);
+      setScrollSpeed(maxSpeed * intensity);
+    } else if (distanceFromRight < edgeThreshold) {
+      // Scroll left (negative offset)
+      const intensity = 1 - (distanceFromRight / edgeThreshold);
+      setScrollSpeed(-maxSpeed * intensity);
+    } else {
+      setScrollSpeed(0);
+    }
+  }, [userState]);
+
+  const handleMouseLeave = useCallback(() => {
+    setScrollSpeed(0);
+  }, []);
+
+  const handlePlantSuccess = useCallback((flower: Flower) => {
+    setAllFlowers(prev => [...prev, flower]);
+    // Restore offset and exit planting state
+    setOffset(preZoomOffset);
+    setUserState('normal');
+    setPlantingPosition(null);
+  }, [preZoomOffset]);
+
+  const isZoomed = userState === 'viewing' || userState === 'planting';
+
+  // Calculate transform origin for zooming
+  const getTransformOrigin = useMemo(() => {
+    if (!isZoomed) return 'center center';
+
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+    const containerHeight = viewportHeight * 0.8; // 80vh
+
+    if (userState === 'viewing' && selectedFlower) {
+      // Since we center the flower horizontally with offset, it will be at viewport center
+      // For vertical, calculate relative to the container
+      return `${viewportWidth / 2}px ${selectedFlower.y}px`;
+    } else if (userState === 'planting' && plantingPosition) {
+      // Same logic for planting position
+      return `${viewportWidth / 2}px ${plantingPosition.y}px`;
+    }
+
+    return 'center center';
+  }, [isZoomed, userState, selectedFlower, plantingPosition]);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-lg">Loading garden...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Fixed Background */}
+      <Image
+        src="/background.png"
+        alt="Garden background"
+        fill
+        className="object-cover object-top"
+        priority
+      />
+
+      {/* Clouds Layer */}
+      <CloudsAnimation />
+
+      {/* Music Player */}
+      <MusicPlayer />
+
+      {/* Error Display */}
+      {error && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          {error}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      )}
+
+      {/* Scroll Indicators */}
+      {userState === 'normal' && (
+        <>
+          <div className="absolute left-4 bottom-[40vh] z-20 pointer-events-none">
+            <ChevronLeft className="w-16 h-16 text-white/90" strokeWidth={2.5} />
+          </div>
+          <div className="absolute right-4 bottom-[40vh] z-20 pointer-events-none">
+            <ChevronRight className="w-16 h-16 text-white/90" strokeWidth={2.5} />
+          </div>
+        </>
+      )}
+
+      {/* Pannable Garden Container */}
+      <div
+        className="absolute bottom-0 w-full h-[80vh] overflow-hidden"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div
+          className="relative h-full cursor-shovel transition-all duration-500 ease-out"
+          style={{
+            transform: `translateX(${offset}px)`,
+            willChange: 'transform'
+          }}
+          onClick={handleGrassClick}
+        >
+          <div
+            className="transition-transform duration-500"
+            style={{
+              transform: isZoomed ? 'scale(2)' : 'scale(1)',
+              transformOrigin: getTransformOrigin
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {/* Dirt Plot Preview */}
+            {plantingPosition && userState === 'planting' && (
+              <DirtPlot
+                x={plantingPosition.x}
+                y={plantingPosition.y}
+                visible={true}
+              />
+            )}
+
+            {/* Flowers */}
+            {visibleFlowers.map((flower, index) => (
+              <div
+                key={flower.id}
+                className="absolute group cursor-pointer z-10"
+                style={{ left: flower.x, top: flower.y }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleFlowerClick(flower);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFlowerClick(flower);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`View ${flower.title}`}
+              >
+                <Image
+                  src={FLOWER_METADATA[flower.flower].image}
+                  alt={flower.title}
+                  width={80}
+                  height={80}
+                  className={`hover:scale-110 transition ${!isZoomed ? 'animate-sway' : 'w-32 h-32'}`}
+                  style={{
+                    animationDelay: !isZoomed ? `${(flower.x % 20) * 0.1}s` : '0s'
+                  }}
+                />
+
+                {/* Hover Preview Tooltip */}
+                {userState === 'normal' && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    <div className="bg-black/90 text-white text-sm px-3 py-2 rounded-lg max-w-[200px] text-center">
+                      <p className="font-semibold">{flower.title}</p>
+                      <p className="text-xs mt-1 line-clamp-2">{flower.message}</p>
+                    </div>
+                    <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90 mx-auto"></div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Drawers & Modals */}
+      <PlantingDrawer
+        isOpen={userState === 'planting'}
+        onClose={handleExitPlanting}
+        clickPosition={plantingPosition}
+        currentOffset={offset}
+        onPlantSuccess={handlePlantSuccess}
+      />
+
+      <FlowerDetailModal
+        flower={selectedFlower}
+        isOpen={userState === 'viewing'}
+        onClose={handleExitViewing}
+      />
     </div>
   );
 }

@@ -120,3 +120,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom cursor styles */
+.cursor-shovel {
+  cursor: url('/shovel-cursor.png') 16 16, pointer !important;
+}
+
+.cursor-shovel * {
+  cursor: inherit !important;
+}
+
+.cursor-planting {
+  cursor: url('/shovel-cursor.png') 16 16, pointer !important;
+}
+
+/* Gentle wind sway animation for flowers */
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+.animate-sway {
+  animation: sway 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Cloud drift animation */
+.cloud {
+  position: absolute;
+  animation: drift linear infinite;
+  will-change: transform;
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-150px);
+  }
+  to {
+    transform: translateX(calc(100vw + 150px));
+  }
+}
