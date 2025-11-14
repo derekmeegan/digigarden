@@ -176,8 +176,11 @@ export function PlantingDrawer({
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full"
-              style={{ backgroundColor: '#D7F5D3' }}
+              className="w-full text-green-900 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: isLoading ? '#A8E6A3' : '#D7F5D3',
+                transition: 'background-color 0.2s'
+              }}
             >
               {isLoading ? 'Planting...' : 'Plant Flower'}
             </Button>

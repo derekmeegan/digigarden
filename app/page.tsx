@@ -10,6 +10,7 @@ import { MusicPlayer } from '@/components/music-player';
 import { DirtPlot } from '@/components/dirt-plot';
 import { PlantingDrawer } from '@/components/planting-drawer';
 import { FlowerDetailModal } from '@/components/flower-detail-modal';
+import { InfoModal } from '@/components/info-modal';
 
 type UserState = 'normal' | 'viewing' | 'planting';
 
@@ -508,6 +509,9 @@ export default function GardenPage() {
         isOpen={userState === 'viewing'}
         onClose={handleExitViewing}
       />
+
+      {/* Info Modal */}
+      <InfoModal />
     </div>
   );
 }
