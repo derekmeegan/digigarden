@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Digigarden - Plant Your Positive Thoughts",
   description: "Plant digital flowers with positive messages and share them with the world.",
+  icons: {
+    icon: '/icons8-sun.svg',
+  },
 };
 
 export default function RootLayout({
