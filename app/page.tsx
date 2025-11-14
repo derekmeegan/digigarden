@@ -290,9 +290,15 @@ export default function GardenPage() {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="text-center">
-          <p className="text-lg">Loading garden...</p>
+      <div className="fixed inset-0 flex items-center justify-center bg-blue-50">
+        <div className="animate-spin">
+          <Image
+            src="/special_flower.png"
+            alt="Loading"
+            width={150}
+            height={150}
+            className="w-[150px] h-[150px] object-contain"
+          />
         </div>
       </div>
     );
