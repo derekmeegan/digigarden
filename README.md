@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DigiGarden
 
-## Getting Started
+A digital garden for planting and sharing positive messages.
 
-First, run the development server:
+## What is this?
+
+DigiGarden is a communal space where people can plant virtual flowers, each carrying a message of kindness, encouragement, or hope. Click anywhere on the garden to plant a flower, write your message, and watch it join the others in an ever-growing field.
+
+This isn't a product. There are no accounts, no metrics, no engagement hooks. Just a quiet corner of the internet where people leave notes for strangers.
+
+## Features
+
+- **Plant flowers** — Choose from tulips, roses, sunflowers, carnations, forget-me-nots, and lilies
+- **Share messages** — Each flower holds a title, message, and optional author name
+- **Browse the garden** — Scroll through an infinite horizontal garden to discover what others have planted
+- **Share individual flowers** — Every flower has its own URL for sharing on social media
+- **Ambient experience** — Lofi music, drifting clouds, a blinking sun, and gently swaying flowers
+
+## Tech Stack
+
+- **Framework**: Next.js 16 / React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Radix UI
+- **Database**: Supabase
+- **Notifications**: Sonner
+
+## Running Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` with your Supabase credentials:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Philosophy
 
-## Learn More
+The internet has enough apps designed to capture attention and extract value. DigiGarden is intentionally simple — a place to give rather than take. Plant something kind and move on, or stay a while and read what others have shared.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+No ads. No data harvesting. No growth hacking. Just flowers.
